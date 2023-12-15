@@ -1,0 +1,103 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.pixel {
+  -ms-interpolation-mode: nearest-neighbor; /* IE 7+ (не стандартное свойство) */
+  image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
+  image-rendering: -webkit-crisp-edges; /* Safari 7+ */
+  image-rendering: -moz-crisp-edges; /* Firefox 3.6+ */
+  image-rendering: -o-crisp-edges; /* Opera 12 */
+  image-rendering: pixelated; /* Chrome 41+ and Opera 26+ */
+}
+
+.container {
+  height: 100vh;
+  width: 100vw;
+  background-color: rgb(178, 178, 178);
+}
+
+.cat {
+  background: url(../src/img/sprite/cat-walk-Sheet.png) 0 0;
+  background-size: cover;
+  height: 120px;
+  width: 198px;
+  position: absolute;
+  left: 0;
+  z-index: 5;
+}
+
+.grass {
+  background: url(../src/img/bg/grass.png) repeat-x;
+  background-size: contain;
+  min-height: 294px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  position: relative;
+}
+
+.zone {
+  position: absolute;
+  height: 120px;
+  width: 198px;
+}
+
+.shadow {
+  position: absolute;
+  background: url(../src/img/bg/shadow-size.png);
+  background-size: cover;
+  height: 36px;
+  width: 198px;
+  top: 96px;
+}
+
+.background {
+  background: url(../src/img/bg/bgx3.png) no-repeat;
+  background-size: center;
+  height: 100%;
+  width: 100%;
+}
+
+.weather {
+  position: absolute;
+  background: url(../src/img/bg/weather-box.png);
+  height: 100vh;
+  width: 100vw;
+  z-index: 10;
+}
+.backdrop {
+  backdrop-filter: blur(3px);
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  position: absolute;
+}
+.snow {
+  height: 120px;
+  background-color: #ffffff;
+}
+
+.step {
+  position: absolute;
+  background: url(../src/img/bg/footprintsX6.png);
+  background-size: cover;
+  height: 12px;
+  width: 36px;
+  bottom: 0;
+  transition: 3s;
+  left: 0;
+}
+
+.steps {
+  /* background: url(../src/img/bg/footprintsX6.png); */
+  width: 100%;
+  z-index: 2;
+  height: 12px;
+  position: relative;
+}
