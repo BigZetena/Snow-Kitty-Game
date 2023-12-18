@@ -56,23 +56,51 @@ weather.animate(...anims.weather);
 
 const catPosition = {
   catX: 0,
-  end: false,
+  catY: 0,
+  endW: true,
+  endA: true,
+  endS: true,
+  endD: true,
   onGround: true,
   startLocation: true,
   outBox: false,
 };
 
+function catYMoving(direction, catPosition) {
+  const addMoveY = setInterval(() => {
+    if (direction === "up") {
+      if (catPosition.endW) clearInterval(addMoveY);
+      if (catPosition.catY < 48) {
+        catPosition.catY += 3;
+        // if ((catPosition.catX + 48) % 54 === 0) {
+        //   drowFootPrints();
+        // }
+      }
+    } else if (direction === "down") {
+      if (catPosition.endS) clearInterval(addMoveY);
+      if (catPosition.catY > -115) {
+        catPosition.catY -= 3;
+        // if ((catPosition.catX + 48) % 54 === 0) {
+        //   drowFootPrints();
+        // }
+      }
+    }
+    cat.style.bottom = catPosition.catY + "px";
+    shadow.style.bottom = catPosition.catY - 12 + "px";
+  }, 25);
+}
+
 function catXMoving(direction, catPosition) {
-  const addMove = setInterval(() => {
-    if (catPosition.end) clearInterval(addMove);
+  const addMoveX = setInterval(() => {
     if (direction === "right") {
+      if (catPosition.endD) clearInterval(addMoveX);
       if (catPosition.catX < 170) {
         catPosition.catX += 6;
         if ((catPosition.catX + 48) % 54 === 0) {
           drowFootPrints();
         }
       } else {
-        clearInterval(addMove);
+        clearInterval(addMoveX);
         if (grass.getAnimations()[0] === undefined)
           grass.animate(...anims.grassRight).pause();
         weather.animate(...anims.grassRight).pause();
@@ -92,25 +120,32 @@ function catXMoving(direction, catPosition) {
         intervalFootSteps();
         drowFootPrints();
       }
-    } else if (catPosition.catX > -170) catPosition.catX -= 6;
-    else {
-      clearInterval(addMove);
-      console.log(grass.getAnimations()[0]);
-      if (grass.getAnimations()[0] === undefined) return;
-      grass
-        .getAnimations()
-        .find((e) => e.id === "grassRight")
-        .play();
-      weather
-        .getAnimations()
-        .find((e) => e.id === "grassRight")
-        .play();
+    } else if (direction === "left") {
+      if (catPosition.endA) clearInterval(addMoveX);
+      if (catPosition.catX > -170) {
+        catPosition.catX -= 6;
+        if ((catPosition.catX + 48) % 54 === 0) {
+          drowFootPrints();
+        }
+      } else {
+        clearInterval(addMoveX);
+        console.log(grass.getAnimations()[0]);
+        if (grass.getAnimations()[0] === undefined) return;
+        grass
+          .getAnimations()
+          .find((e) => e.id === "grassRight")
+          .play();
+        weather
+          .getAnimations()
+          .find((e) => e.id === "grassRight")
+          .play();
 
-      grass.getAnimations()[0].playbackRate = -1;
-      weather.getAnimations()[1].playbackRate = -1;
-      catPosition.outBox = true;
-      intervalFootSteps();
-      console.log(grass.getAnimations());
+        grass.getAnimations()[0].playbackRate = -1;
+        weather.getAnimations()[1].playbackRate = -1;
+        catPosition.outBox = true;
+        intervalFootSteps();
+        drowFootPrints();
+      }
     }
     cat.style.left = catPosition.catX + "px";
     shadow.style.left = catPosition.catX + "px";
@@ -138,16 +173,25 @@ function drowOneStep() {
   }, 3200);
   step.className = "step";
   let xPosition = cat.getBoundingClientRect().right - 60;
+  let yPosition = cat.getBoundingClientRect().bottom - 12;
   step.style.left = `${xPosition}px`;
+  step.style.top = `${yPosition}px`;
   steps.append(step);
   anims.footPrintsLeft[0] = [
     { left: `${xPosition}px` },
     { left: `${xPosition - 1488}px` },
   ];
+  if (!catPosition.endA && catPosition.outBox) {
+    anims.footPrintsLeft[0] = [
+      { left: `${xPosition}px` },
+      { left: `${xPosition + 1488}px` },
+    ];
+  }
   console.log(anims.footPrintsLeft);
 
-  if (catPosition.outBox) step.animate(...anims.footPrintsLeft).play();
-  else step.animate(...anims.footPrintsLeft).pause();
+  if (catPosition.outBox) {
+    step.animate(...anims.footPrintsLeft).play();
+  } else step.animate(...anims.footPrintsLeft).pause();
 }
 
 function intervalFootSteps() {
@@ -162,15 +206,28 @@ function drowFootPrints() {
     drowOneStep();
   } else {
     if (grass.getAnimations()[0] !== undefined) {
-      if (grass.getAnimations()[0].playbackRate === 1 && !catPosition.end) {
+      if (grass.getAnimations()[0].playbackRate === 1 && !catPosition.endD) {
         steps.querySelectorAll(".step").forEach((step) => {
+          step
+            .getAnimations()
+            .find((e) => e.id === "footPrintsLeft").playbackRate = 1;
           step
             .getAnimations()
             .find((e) => e.id === "footPrintsLeft")
             .play();
-          console.log(step.getAnimations());
         });
       }
+      // if (grass.getAnimations()[0].playbackRate === -1 && !catPosition.endA) {
+      //   steps.querySelectorAll(".step").forEach((step) => {
+      //     step
+      //       .getAnimations()
+      //       .find((e) => e.id === "footPrintsLeft").playbackRate = -1;
+      //     step
+      //       .getAnimations()
+      //       .find((e) => e.id === "footPrintsLeft")
+      //       .play();
+      //   });
+      // }
     }
   }
 }
@@ -210,27 +267,43 @@ function drowFootPrints() {
 //   steps.append(step);
 // }
 // }
+
+const eventsKeyDown = {
+  KeyW() {
+    catPosition.endW = false;
+    catYMoving("up", catPosition);
+  },
+  KeyA() {
+    cat.style.transform = " scale(-1, 1)";
+    shadow.style.transform = " scale(-1, 1)";
+    cat.animate(...anims.walkAnim);
+    catPosition.endA = false;
+    catXMoving("left", catPosition);
+  },
+
+  KeyS() {
+    catPosition.endS = false;
+    catYMoving("down", catPosition);
+  },
+  KeyD() {
+    cat.style.transform = "";
+    shadow.style.transform = "";
+    cat.animate(...anims.walkAnim);
+    catPosition.endD = false;
+    catXMoving("right", catPosition);
+  },
+};
+
 window.addEventListener("keydown", (e) => {
-  if (cat.getAnimations()[0] !== undefined) return;
-  switch (e.code) {
-    case "KeyD":
-      cat.style.transform = "";
-      shadow.style.transform = "";
-      cat.animate(...anims.walkAnim);
-      catPosition.end = false;
-      catXMoving("right", catPosition);
-
-      break;
-    case "KeyA":
-      cat.style.transform = " scale(-1, 1)";
-      shadow.style.transform = " scale(-1, 1)";
-      cat.animate(...anims.walkAnim);
-      catPosition.end = false;
-      catXMoving("left", catPosition);
-
-      break;
+  if (e.repeat) {
+    // catPosition.end = false;
+    return;
   }
+  eventsKeyDown[e.code]();
+  // console.log(catPosition.end);
+  // // if (cat.getAnimations()[0] !== undefined) return;
 });
+
 window.addEventListener("keyup", (e) => {
   switch (e.code) {
     case "KeyD":
@@ -238,7 +311,7 @@ window.addEventListener("keyup", (e) => {
         .getAnimations()
         .find((e) => e.id === "walk")
         .cancel();
-      catPosition.end = true;
+      catPosition.endD = true;
       catPosition.outBox = false;
 
       grass.getAnimations().forEach((e) => e.pause());
@@ -257,7 +330,7 @@ window.addEventListener("keyup", (e) => {
         .getAnimations()
         .find((e) => e.id === "walk")
         .cancel();
-      catPosition.end = true;
+      catPosition.endA = true;
       catPosition.outBox = false;
       grass.getAnimations().forEach((e) => e.pause());
       if (weather.getAnimations()[1] === undefined) return;
@@ -270,6 +343,12 @@ window.addEventListener("keyup", (e) => {
           .find((e) => e.id === "footPrintsLeft")
           .pause();
       });
+      break;
+    case "KeyW":
+      catPosition.endW = true;
+      break;
+    case "KeyS":
+      catPosition.endS = true;
       break;
   }
 });
