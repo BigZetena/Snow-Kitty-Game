@@ -4,6 +4,25 @@
   padding: 0;
 }
 
+.help__modal {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  height: 100vh;
+  width: 100vw;
+  top: 0;
+}
+
+.help__controls {
+  width: 600px;
+  height: 600px;
+  background: url(../src/img/interface/modal.png);
+  background-size: cover;
+}
+
 .pixel {
   -ms-interpolation-mode: nearest-neighbor; /* IE 7+ (не стандартное свойство) */
   image-rendering: -webkit-optimize-contrast; /* Safari 6, UC Browser 9.9 */
@@ -26,19 +45,19 @@
   width: 198px;
   position: absolute;
   left: 0;
-  bottom: 0;
+  bottom: 90px;
   z-index: 5;
 }
 
 .grass {
   background: url(../src/img/bg/grass.png) repeat-x;
   background-size: contain;
-  min-height: 294px;
+  min-height: 480px;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: end;
-  position: relative;
+  position: absolute;
 }
 
 .zone {
@@ -53,7 +72,7 @@
   background-size: cover;
   height: 36px;
   width: 198px;
-  bottom: -12px;
+  bottom: 80px;
 }
 
 .background {
@@ -80,25 +99,21 @@
   position: absolute;
 }
 .snow {
-  height: 120px;
-  background-color: #ffffff;
+  height: 100vh;
+  width: 10000px;
+  position: relative;
+  left: 0;
+  z-index: 2;
 }
 
 .step {
   position: absolute;
   background: url(../src/img/bg/footprintsX6.png);
   background-size: cover;
+  z-index: 1;
   height: 12px;
   width: 36px;
-  bottom: 0;
+  bottom: 112px;
   transition: 3s;
   left: 0;
-}
-
-.steps {
-  /* background: url(../src/img/bg/footprintsX6.png); */
-  height: 100vh;
-  width: 100vw;
-  z-index: 2;
-  position: absolute;
 }

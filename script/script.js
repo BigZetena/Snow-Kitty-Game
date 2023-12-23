@@ -3,8 +3,47 @@ const shadow = document.querySelector(".shadow");
 const grass = document.querySelector(".grass");
 const weather = document.querySelector(".weather");
 const snow = document.querySelector(".snow");
-const steps = document.querySelector(".steps");
-console.log(cat);
+const container = document.querySelector(".container");
+
+function addControlHelpModal() {
+  const help = document.createElement("div");
+  container.append(help);
+  help.className = "help__modal pixel";
+  help.innerHTML = `
+  <div class="help__controls"></div>
+  `;
+  help.addEventListener("click", () => {
+    help.remove();
+  });
+  window.addEventListener("keydown", closeHandler);
+  function closeHandler() {
+    help.remove();
+    removeEventListener("keydown", closeHandler);
+  }
+}
+
+addControlHelpModal();
+
+const catPosition = {
+  catX: 0,
+  catY: 80,
+  endW: true,
+  endA: true,
+  endS: true,
+  endD: true,
+  onGround: true,
+  startLocation: true,
+  outBox: false,
+  direction: 1,
+};
+cat.style.bottom = catPosition.catY + "px";
+shadow.style.bottom = catPosition.catY - 12 + "px";
+
+const level = {
+  snowLength: 10000,
+  pxPerMlSec: 0.24,
+};
+
 const anims = {
   walkAnim: [
     [
@@ -21,12 +60,12 @@ const anims = {
     },
   ],
 
-  footPrintsLeft: [
-    [{ left: "-1488px" }],
+  snowMovement: [
+    [{ left: 0 }, { left: "-1488px" }],
     {
-      id: "footPrintsLeft",
+      id: "snowMovement",
       // easing: "linear",
-      duration: 6200,
+      duration: 4166,
       iterations: Infinity,
     },
   ],
@@ -54,36 +93,26 @@ const anims = {
 
 weather.animate(...anims.weather);
 
-const catPosition = {
-  catX: 0,
-  catY: 0,
-  endW: true,
-  endA: true,
-  endS: true,
-  endD: true,
-  onGround: true,
-  startLocation: true,
-  outBox: false,
-};
-
 function catYMoving(direction, catPosition) {
+  if (cat.getAnimations()[0] === undefined) cat.animate(...anims.walkAnim);
   const addMoveY = setInterval(() => {
     if (direction === "up") {
       if (catPosition.endW) clearInterval(addMoveY);
-      if (catPosition.catY < 48) {
+      if (catPosition.catY < 174) {
         catPosition.catY += 3;
-        // if ((catPosition.catX + 48) % 54 === 0) {
-        //   drowFootPrints();
-        // }
       }
     } else if (direction === "down") {
       if (catPosition.endS) clearInterval(addMoveY);
-      if (catPosition.catY > -115) {
+      if (catPosition.catY > 0) {
         catPosition.catY -= 3;
         // if ((catPosition.catX + 48) % 54 === 0) {
         //   drowFootPrints();
         // }
       }
+    }
+    if (catPosition.catY % 8 === 0 && catPosition.endD && catPosition.endA) {
+      drowFootPrints();
+      drowFootPrints(true);
     }
     cat.style.bottom = catPosition.catY + "px";
     shadow.style.bottom = catPosition.catY - 12 + "px";
@@ -91,6 +120,7 @@ function catYMoving(direction, catPosition) {
 }
 
 function catXMoving(direction, catPosition) {
+  if (cat.getAnimations()[0] === undefined) cat.animate(...anims.walkAnim);
   const addMoveX = setInterval(() => {
     if (direction === "right") {
       if (catPosition.endD) clearInterval(addMoveX);
@@ -113,7 +143,7 @@ function catXMoving(direction, catPosition) {
           .getAnimations()
           .find((e) => e.id === "grassRight")
           .play();
-
+        snowMovement(direction);
         grass.getAnimations()[0].playbackRate = 1;
         weather.getAnimations()[1].playbackRate = 1;
         catPosition.outBox = true;
@@ -139,7 +169,7 @@ function catXMoving(direction, catPosition) {
           .getAnimations()
           .find((e) => e.id === "grassRight")
           .play();
-
+        snowMovement(direction);
         grass.getAnimations()[0].playbackRate = -1;
         weather.getAnimations()[1].playbackRate = -1;
         catPosition.outBox = true;
@@ -160,7 +190,7 @@ function catXMoving(direction, catPosition) {
 //   });
 // }
 
-function drowOneStep() {
+function drowOneStep(xStatic) {
   const step = document.createElement("div");
   const deleteTimer = setTimeout(() => {
     step.style.opacity = "0";
@@ -170,28 +200,24 @@ function drowOneStep() {
     }, 3000);
 
     clearTimeout(deleteTimer);
-  }, 3200);
+  }, 6000);
   step.className = "step";
-  let xPosition = cat.getBoundingClientRect().right - 60;
+
+  let xPosition =
+    cat.getBoundingClientRect().right -
+    (catPosition.direction === 1 ? 60 : 168) +
+    -snow.getBoundingClientRect().left;
+  if (xStatic) {
+    xPosition =
+      cat.getBoundingClientRect().right -
+      (catPosition.direction === 1 ? 120 : 60) +
+      -snow.getBoundingClientRect().left;
+  }
+
   let yPosition = cat.getBoundingClientRect().bottom - 12;
   step.style.left = `${xPosition}px`;
   step.style.top = `${yPosition}px`;
-  steps.append(step);
-  anims.footPrintsLeft[0] = [
-    { left: `${xPosition}px` },
-    { left: `${xPosition - 1488}px` },
-  ];
-  if (!catPosition.endA && catPosition.outBox) {
-    anims.footPrintsLeft[0] = [
-      { left: `${xPosition}px` },
-      { left: `${xPosition + 1488}px` },
-    ];
-  }
-  console.log(anims.footPrintsLeft);
-
-  if (catPosition.outBox) {
-    step.animate(...anims.footPrintsLeft).play();
-  } else step.animate(...anims.footPrintsLeft).pause();
+  snow.append(step);
 }
 
 function intervalFootSteps() {
@@ -201,135 +227,103 @@ function intervalFootSteps() {
   }, 225);
 }
 
-function drowFootPrints() {
-  if (catPosition.catX > -170 && catPosition.catX < 170) {
-    drowOneStep();
-  } else {
-    if (grass.getAnimations()[0] !== undefined) {
-      if (grass.getAnimations()[0].playbackRate === 1 && !catPosition.endD) {
-        steps.querySelectorAll(".step").forEach((step) => {
-          step
-            .getAnimations()
-            .find((e) => e.id === "footPrintsLeft").playbackRate = 1;
-          step
-            .getAnimations()
-            .find((e) => e.id === "footPrintsLeft")
-            .play();
-        });
-      }
-      // if (grass.getAnimations()[0].playbackRate === -1 && !catPosition.endA) {
-      //   steps.querySelectorAll(".step").forEach((step) => {
-      //     step
-      //       .getAnimations()
-      //       .find((e) => e.id === "footPrintsLeft").playbackRate = -1;
-      //     step
-      //       .getAnimations()
-      //       .find((e) => e.id === "footPrintsLeft")
-      //       .play();
-      //   });
-      // }
-    }
-  }
+function drowFootPrints(prop) {
+  drowOneStep(prop);
 }
 
-// if (grass.getAnimations()[0] !== undefined) {
-//   if (
-//     grass.getAnimations()[0].playbackRate === 1 &&
-//     catPosition.catX >= 150
-//   ) {
-//     footPrints.forEach((e) => {
-//       console.log(e.left);
-//       e.left -= 6;
-//     });
-//     console.log("get");
-//     steps.innerHTML = " ";
-//   }
-// }
-// footPrints.forEach(({ left }) => {
-//   const step = document.createElement("div");
-//   step.className = "step";
-//   step.style.left = `${left}px`;
-//   steps.append(step);
-// });
+function snowMovement(direction) {
+  if (snow.getAnimations().find((e) => e.id === "snowMovement") === undefined) {
+    anims.snowMovement[0] = [
+      { left: `0px` },
+      { left: `${-level.snowLength - window.innerWidth}px` },
+    ];
+    anims.snowMovement[1].duration = Math.round(
+      (level.snowLength + window.innerWidth) / level.pxPerMlSec
+    );
+    snow.animate(...anims.snowMovement).pause();
+  }
 
-// const step = document.createElement("div");
-// step.className = "step";
-// step.style.left = `${footPrints.left}px`;
-// steps.append(step);
-
-// if (grass.getAnimations()[0] === undefined) return;
-// if (grass.getAnimations()[0].playbackRate === 1) {
-//   const step = document.createElement("div");
-//   step.className = "step";
-//   step.style.left = `${
-//     steps.querySelector(".step").getBoundingClientRect().right - 54
-//   }px`;
-//   steps.append(step);
-// }
-// }
+  if (direction === "right") {
+    snow.getAnimations().find((e) => e.id === "snowMovement").playbackRate = 1;
+    snow
+      .getAnimations()
+      .find((e) => e.id === "snowMovement")
+      .play();
+  } else {
+    if (direction === "left") {
+      snow.getAnimations().find((e) => e.id === "snowMovement").playbackRate =
+        -1;
+      snow
+        .getAnimations()
+        .find((e) => e.id === "snowMovement")
+        .play();
+    }
+  }
+  console.log(snow.getAnimations().find((e) => e.id === "snowMovement"));
+  console.log(anims.snowMovement);
+}
 
 const eventsKeyDown = {
   KeyW() {
+    if (!catPosition.endS) return;
     catPosition.endW = false;
     catYMoving("up", catPosition);
   },
   KeyA() {
+    if (!catPosition.endD) return;
     cat.style.transform = " scale(-1, 1)";
     shadow.style.transform = " scale(-1, 1)";
-    cat.animate(...anims.walkAnim);
+    catPosition.direction = -1;
     catPosition.endA = false;
     catXMoving("left", catPosition);
   },
 
   KeyS() {
+    if (!catPosition.endW) return;
     catPosition.endS = false;
     catYMoving("down", catPosition);
   },
   KeyD() {
+    if (!catPosition.endA) return;
     cat.style.transform = "";
     shadow.style.transform = "";
-    cat.animate(...anims.walkAnim);
+    catPosition.direction = 1;
     catPosition.endD = false;
     catXMoving("right", catPosition);
   },
 };
 
 window.addEventListener("keydown", (e) => {
-  if (e.repeat) {
-    // catPosition.end = false;
+  if (
+    e.repeat &&
+    (!catPosition.endW ||
+      !catPosition.endA ||
+      !catPosition.endS ||
+      !catPosition.endD)
+  ) {
     return;
   }
   eventsKeyDown[e.code]();
-  // console.log(catPosition.end);
-  // // if (cat.getAnimations()[0] !== undefined) return;
 });
 
-window.addEventListener("keyup", (e) => {
-  switch (e.code) {
-    case "KeyD":
+const eventsKeyUp = {
+  KeyW() {
+    catPosition.endW = true;
+    if (catPosition.endS && catPosition.endA && catPosition.endD) {
       cat
         .getAnimations()
         .find((e) => e.id === "walk")
         .cancel();
-      catPosition.endD = true;
-      catPosition.outBox = false;
-
-      grass.getAnimations().forEach((e) => e.pause());
-      weather
-        .getAnimations()
-        .find((e) => e.id === "grassRight")
-        .pause();
-      steps.querySelectorAll(".step").forEach((e) => {
-        e.getAnimations()
-          .find((e) => e.id === "footPrintsLeft")
-          .pause();
-      });
-      break;
-    case "KeyA":
+    }
+  },
+  KeyA() {
+    if (catPosition.endW && catPosition.endS && catPosition.endD) {
       cat
         .getAnimations()
         .find((e) => e.id === "walk")
         .cancel();
+    }
+    if (catPosition.endD) {
       catPosition.endA = true;
       catPosition.outBox = false;
       grass.getAnimations().forEach((e) => e.pause());
@@ -338,17 +332,47 @@ window.addEventListener("keyup", (e) => {
         .getAnimations()
         .find((e) => e.id === "grassRight")
         .pause();
-      steps.querySelectorAll(".step").forEach((e) => {
-        e.getAnimations()
-          .find((e) => e.id === "footPrintsLeft")
-          .pause();
-      });
-      break;
-    case "KeyW":
-      catPosition.endW = true;
-      break;
-    case "KeyS":
-      catPosition.endS = true;
-      break;
-  }
+
+      snow
+        .getAnimations()
+        .find((e) => e.id === "snowMovement")
+        .pause();
+    }
+  },
+  KeyS() {
+    catPosition.endS = true;
+    if (catPosition.endW && catPosition.endA && catPosition.endD) {
+      cat
+        .getAnimations()
+        .find((e) => e.id === "walk")
+        .cancel();
+    }
+  },
+  KeyD() {
+    if (catPosition.endS && catPosition.endA && catPosition.endW) {
+      cat
+        .getAnimations()
+        .find((e) => e.id === "walk")
+        .cancel();
+    }
+    if (catPosition.endA) {
+      catPosition.endD = true;
+      catPosition.outBox = false;
+
+      grass.getAnimations().forEach((e) => e.pause());
+      weather
+        .getAnimations()
+        .find((e) => e.id === "grassRight")
+        .pause();
+
+      snow
+        .getAnimations()
+        .find((e) => e.id === "snowMovement")
+        .pause();
+    }
+  },
+};
+
+window.addEventListener("keyup", (e) => {
+  eventsKeyUp[e.code]();
 });
